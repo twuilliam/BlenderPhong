@@ -11,20 +11,20 @@ scene = D.scenes['Scene']
 # a camera position is defined by two parameters: (theta, phi),
 # where we fix the "r" of (r, theta, phi) in spherical coordinate system.
 
-# 5 orientations: front, right, back, left, top
-cameras = [
-    (60, 0), (60, 90), (60, 180), (60, 270),
-    (0, 0)
-]
+# # 5 orientations: front, right, back, left, top
+# cameras = [
+#     (60, 0), (60, 90), (60, 180), (60, 270),
+#     (0, 0)
+# ]
 
 # 12 orientations around the object with 30-deg elevation
-# cameras = [(60, i) for i in range(0, 360, 30)]
+cameras = [(60, i) for i in range(0, 360, 30)]
 
 render_setting = scene.render
 
 # output image size = (W, H)
-w = 500
-h = 500
+w = 1024
+h = 1024
 render_setting.resolution_x = w
 render_setting.resolution_y = h
 
@@ -75,6 +75,24 @@ def init_camera():
     C.object.data.type = 'ORTHO'
     C.object.data.ortho_scale = 2.
 
+    # Following shapenet renderer, add a second light source
+    # see: https://github.com/panmari/stanford-shapenet-renderer
+    bpy.context.scene.use_nodes = True
+    # Make light just directional, disable shadows.
+    lamp = bpy.data.lamps['Sun']
+    lamp.type = 'SUN'
+    lamp.shadow_method = 'NOSHADOW'
+    # Possibly disable specular shading:
+    lamp.use_specular = False
+
+    # Add another light source so stuff facing away from light is not completely dark
+    bpy.ops.object.lamp_add(type='SUN')
+    lamp2 = bpy.data.lamps['Sun']
+    lamp2.shadow_method = 'NOSHADOW'
+    lamp2.use_specular = False
+    lamp2.energy = 0.015
+    bpy.data.objects['Sun'].rotation_euler = bpy.data.objects['Sun'].rotation_euler
+    bpy.data.objects['Sun'].rotation_euler[0] += 180
 
 def fix_camera_to_origin():
     origin_name = 'Origin'
